@@ -20,6 +20,7 @@ type
     Alpha: Byte;
     FX: LongWord;
     Blend: Byte;
+    Clear: Boolean;
     constructor Create(AName: String; AWidth, AHeight: Word);
     destructor Destroy; override;
     procedure InsertDrawable(ADrawable: TDrawable; Ordered: Boolean = False);
@@ -39,12 +40,14 @@ begin
   Alpha := $FF;
   FX := FX_BLEND;
   Blend := FX_BLEND_NORMAL;
+  Clear := True;
   Target := rtarget_Add(tex_CreateZero(Width, Height), RT_DEFAULT);
   Drawables := TDrawableList.Create;
 end;
 
 destructor TLayer.Destroy;
 begin
+  Drawables.Free;
   rtarget_Del(Target);
   inherited Destroy;
 end;
@@ -62,6 +65,16 @@ var
   drawable: TDrawable;
 begin
   rtarget_Set(Target);
+
+  if Clear then begin
+    fx_SetBlendMode(FX_BLEND_MASK);
+    //fx_SetColorMask(False, False, False, True);
+    //fx_SetColorMode(FX_COLOR_SET);
+    pr2d_Rect(0, 0, Width, Height, $00000000, $00, PR2D_FILL);
+    fx_SetColorMode(FX_COLOR_MIX);
+    fx_SetColorMask(True, True, True, True);
+    fx_SetBlendMode(FX_BLEND_NORMAL);
+  end;
 
   drawable := TDrawable(Drawables.Head);
   while Assigned(drawable) do begin
