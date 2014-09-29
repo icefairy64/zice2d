@@ -5,7 +5,7 @@ unit drawables;
 interface
 
 uses
-  Classes, SysUtils, layers, zglHeader, simplelist, resources, timer;
+  Classes, SysUtils, zglHeader, simplelist, resources, timer;
 
 type
   TDrawable = class(TListItem)
@@ -16,17 +16,20 @@ type
     Alpha: Byte;
     FX: LongWord;
     Blend: Byte;
-    Layer: TLayer;
 
     constructor Create;
-    constructor Create(ALayer: TLayer);
-    procedure Init(ALayer: TLayer; AX, AY: Double; AAlpha: Byte = $FF; AScale: Double = 1.0; ABlend: Byte = FX_BLEND_NORMAL; AFX: LongWord = FX_BLEND);
+    //constructor Create(ALayer: TLayer);
+    procedure Init(AX, AY: Double; AAlpha: Byte = $FF; AScale: Double = 1.0; ABlend: Byte = FX_BLEND_NORMAL; AFX: LongWord = FX_BLEND);
     procedure MoveTo(AX, AY: Double);
     procedure Render;
     procedure AttachPos(Target: zglPPoint2D);
 
     protected
       procedure Draw; virtual; abstract;
+  end;
+
+  TDrawableList = class(TSimpleList)
+    function InsertOrdered(Item: TDrawable): TDrawable;
   end;
 
   { TSprite }
@@ -45,7 +48,7 @@ type
       AnimSpeed: Double;
       property Frame: Word read GetFrame write SetFrame;
 
-      constructor Create(ALayer: TLayer; ARes: TResSprite);
+      constructor Create(ARes: TResSprite);
       procedure Tick(DT: Double);
       procedure SetResource(ARes: TResSprite);
   end;
@@ -68,15 +71,15 @@ begin
   FX := FX_BLEND;
 end;
 
-constructor TDrawable.Create(ALayer: TLayer);
+{constructor TDrawable.Create(ALayer: TLayer);
 begin
   Create;
   Layer := ALayer;
-end;
+end;}
 
-procedure TDrawable.Init(ALayer: TLayer; AX, AY: Double; AAlpha: Byte; AScale: Double; ABlend: Byte; AFX: LongWord);
+procedure TDrawable.Init(AX, AY: Double; AAlpha: Byte; AScale: Double; ABlend: Byte; AFX: LongWord);
 begin
-  Layer := ALayer;
+  //Layer := ALayer;
   MoveTo(AX, AY);
   Alpha := AAlpha;
   Scale := AScale;
@@ -93,7 +96,7 @@ end;
 procedure TDrawable.Render;
 begin
   fx_SetBlendMode(Blend);
-  rtarget_Set(Layer.Target);
+  //rtarget_Set(Layer.Target);
   Draw;
   fx_SetBlendMode(FX_BLEND_NORMAL);
 end;
@@ -103,6 +106,24 @@ begin
   if Assigned(Pos) then
     FreeMem(Pos);
   Pos := Target;
+end;
+
+// TDrawableList
+
+function TDrawableList.InsertOrdered(Item: TDrawable): TDrawable;
+var
+  point: TDrawable;
+begin
+  Result := Item;
+  point := TDrawable(Head);
+
+  while Assigned(point) and (point.ZOrder <= Item.ZOrder) do
+    point := TDrawable(point.Next);
+
+  if not Assigned(point) then
+    Insert(Item)
+  else
+    InsertAt(point, Item);
 end;
 
 // TSprite
@@ -141,9 +162,9 @@ begin
                  FX);
 end;
 
-constructor TSprite.Create(ALayer: TLayer; ARes: TResSprite);
+constructor TSprite.Create(ARes: TResSprite);
 begin
-  inherited Create(ALayer);
+  inherited Create;
   Source := ARes;
 end;
 

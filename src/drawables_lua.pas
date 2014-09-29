@@ -5,7 +5,7 @@ unit drawables_lua;
 interface
 
 uses
-  Classes, SysUtils, drawables, lua, resources, layers;
+  Classes, SysUtils, drawables, lua, resources;
 
 function Sprite_Create(State: Plua_State): Integer; cdecl;
 procedure RegisterFunctions(State: Plua_State);
@@ -15,16 +15,13 @@ implementation
 function Sprite_Create(State: Plua_State): Integer; cdecl;
 var
   res: TResSprite;
-  layer: TLayer;
 begin
   // 1: Resource [pointer to TResSprite]
-  // 2: Layer    [pointer to TLayer]
 
   res := TResSprite(Pointer(lua_tointeger(State, 1)));
-  layer := TLayer(Pointer(lua_tointeger(State, 2)));
-  lua_pop(State, 2);
+  lua_pop(State, 1);
 
-  lua_pushinteger(State, lua_Integer(Pointer(TSprite.Create(layer, res))));
+  lua_pushinteger(State, lua_Integer(Pointer(TSprite.Create(res))));
   Result := 1;
 end;
 
