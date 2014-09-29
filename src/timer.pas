@@ -12,8 +12,12 @@ type
     procedure Tick(DT: Double);
   end;
 
+  { TTickableListItem }
+
   TTickableListItem = class(TListItem)
     Body: ITickable;
+
+    destructor Destroy; override;
   end;
 
   TTimer = class
@@ -39,6 +43,14 @@ type
   end;
 
 implementation
+
+{ TTickableListItem }
+
+destructor TTickableListItem.Destroy;
+begin
+  //FreeAndNil(Body);
+  inherited Destroy;
+end;
 
 // TTimer
 
@@ -106,12 +118,8 @@ var
 begin
   point := TTickableListItem(Attached.Head);
   while Assigned(point) do begin
-    if Assigned(point.Body) and (point.Body = Client) then begin
-      if Assigned(point.Next) then
-        point.Next.Prev := point.Prev
-      else if Assigned(point.Prev) then
-        point.Prev.Next := point.Next;
-    end;
+    if Assigned(point.Body) and (point.Body = Client) then
+      Attached.Remove(point);
     point := TTickableListItem(point.Next);
   end;
 end;

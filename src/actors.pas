@@ -21,7 +21,7 @@ type
 
   { TActor }
 
-  TActor = class(TInterfacedObject, ITickable)
+  TActor = class(TListItem, ITickable)
     type
       TScriptedMovementFinish = procedure(Sender: TActor);
 

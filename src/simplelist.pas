@@ -9,6 +9,10 @@ uses
 
 type
 
+  ENilItem = class(Exception)
+
+  end;
+
   { TListItem }
 
   TListItem = class(TInterfacedObject)
@@ -124,7 +128,7 @@ end;
 procedure TSimpleList.InsertAt(Point: TListItem; Item: TListItem);
 begin
   if not Assigned(Point) then
-    Exit;
+    raise ENilItem.Create('Trying to insert non-existing item');
   Item.Next := Point.Next;
   Item.Prev := Point;
 end;
@@ -140,6 +144,8 @@ end;
 
 function TSimpleList.Insert(Item: TListItem): TListItem;
 begin
+  if not Assigned(Item) then
+    raise ENilItem.Create('Trying to insert non-existing item');
   Result := Item;
   Result.Prev := Tail;
   Tail := Result;
@@ -150,11 +156,15 @@ end;
 procedure TSimpleList.Remove(Item: TListItem; DoFree: Boolean);
 begin
   if not Assigned(Item) then
-    Exit;
+    raise ENilItem.Create('Trying to remove non-existing item');
   if Assigned(Item.Next) then
     Item.Next.Prev := Item.Prev
   else if Assigned(Item.Prev) then
     Item.Prev.Next := Item.Next;
+  if Head = Item then
+    Head := nil;
+  if Tail = Item then
+    Tail := nil;
   if DoFree then
     Item.Free;
 end;
